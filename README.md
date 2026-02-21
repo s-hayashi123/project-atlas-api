@@ -1,3 +1,17 @@
 # Project Atlas API
 
-Python（FastAPI）での実務想定開発（オンボーディング / バグ修正 / 機能追加 / テスト / リファクタ / 性能改善）用の実装リポジトリ。
+チーム・ユーザー管理API。
+
+## セットアップ
+
+Python をインストールして、DB をセットアップしてください。
+
+```bash
+pip install -r requirements.txt
+```
+
+サーバー起動:
+
+```bash
+uvicorn main:app --reload
+```
