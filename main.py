@@ -1,8 +1,8 @@
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import FastAPI, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import sessionmaker, declarative_base, Session, relationship
 from typing import Optional, List
@@ -27,8 +27,8 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     email = Column(String, nullable=False)  # BUG: UNIQUE制約なし (P02-01)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
 
 class Team(Base):
@@ -37,8 +37,8 @@ class Team(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     description = Column(String, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     members = relationship("TeamMember", back_populates="team")
 
@@ -54,7 +54,7 @@ class TeamMember(Base):
         Integer, ForeignKey("users.id"), nullable=False
     )  # BUG: ON DELETE なし (P02-08)
     role = Column(String, nullable=False, default="member")
-    joined_at = Column(DateTime, default=datetime.utcnow)
+    joined_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     team = relationship("Team", back_populates="members")
 
@@ -85,9 +85,7 @@ class UserResponse(BaseModel):
     email: str
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TeamCreate(BaseModel):
@@ -101,9 +99,7 @@ class TeamResponse(BaseModel):
     description: Optional[str]
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TeamMemberCreate(BaseModel):
@@ -117,9 +113,7 @@ class TeamMemberResponse(BaseModel):
     user_id: int
     role: str
     joined_at: datetime
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # --- App ---
