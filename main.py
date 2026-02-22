@@ -9,7 +9,9 @@ from typing import Optional, List
 
 # --- Database setup ---
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/atlas")
+DATABASE_URL = os.getenv(
+    "DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/atlas"
+)
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -17,6 +19,7 @@ Base = declarative_base()
 
 
 # --- Models ---
+
 
 class User(Base):
     __tablename__ = "users"
@@ -44,8 +47,12 @@ class TeamMember(Base):
     __tablename__ = "team_members"
 
     id = Column(Integer, primary_key=True, index=True)
-    team_id = Column(Integer, ForeignKey("teams.id"), nullable=False)  # BUG: ON DELETE なし (P02-08)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)  # BUG: ON DELETE なし (P02-08)
+    team_id = Column(
+        Integer, ForeignKey("teams.id"), nullable=False
+    )  # BUG: ON DELETE なし (P02-08)
+    user_id = Column(
+        Integer, ForeignKey("users.id"), nullable=False
+    )  # BUG: ON DELETE なし (P02-08)
     role = Column(String, nullable=False, default="member")
     joined_at = Column(DateTime, default=datetime.utcnow)
 
@@ -55,6 +62,7 @@ class TeamMember(Base):
 # --- Pydantic Schemas ---
 # BUG: description / example が未整備 (P01-05)
 # BUG: extra="forbid" 未設定 (P02-07)
+
 
 class UserCreate(BaseModel):
     name: str
@@ -130,6 +138,7 @@ def get_db():
 
 # --- Health ---
 
+
 @app.get("/health")
 def health_check():
     # BUG: DB確認なし (P01-07)
@@ -137,6 +146,7 @@ def health_check():
 
 
 # --- Users CRUD ---
+
 
 @app.post("/users", response_model=UserResponse)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
@@ -208,6 +218,7 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
 
 # --- Teams CRUD ---
 
+
 @app.post("/teams", response_model=TeamResponse)
 def create_team(team: TeamCreate, db: Session = Depends(get_db)):
     print(f"Creating team: {team.name}")  # BUG: print()でログ出力 (P01-09)
@@ -234,8 +245,11 @@ def get_team(team_id: int, db: Session = Depends(get_db)):
 
 # --- Team Members ---
 
+
 @app.post("/teams/{team_id}/members", response_model=TeamMemberResponse)
-def add_team_member(team_id: int, member: TeamMemberCreate, db: Session = Depends(get_db)):
+def add_team_member(
+    team_id: int, member: TeamMemberCreate, db: Session = Depends(get_db)
+):
     print(f"Adding member to team {team_id}")
     db_member = TeamMember(team_id=team_id, user_id=member.user_id, role=member.role)
     db.add(db_member)
