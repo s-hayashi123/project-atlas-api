@@ -46,6 +46,7 @@ source venv/bin/activate
 ```bash
 pip install --upgrade pip
 pip install -r requirements.txt
+pip install --upgrade python-multipart starlette
 ```
 
 ---
